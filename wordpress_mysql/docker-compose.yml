@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+
+  # Define service for MYSQL conatienr
+  db:
+    image: mysql:5.7
+
+    # volume mount for data persistence
+    volumes:
+      - db_data:/var/lib/mysql 
+    restart: always
+    ports:
+      - '3307:3306'
+
+    # environement vars for mysql db
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+      - wpsite2
+
+  # Define service for wordpress container
+  wordpress:
+    depends_on:
+      - db
+    image: wordpress:latest
+
+    # Port mapping (wp multisite only works on ports 80 and 443)
+    ports:
+      - "8002:80"
+    restart: always
+    volumes: ['./:/var/www/html']
+
+    # Environment vars to integrate wp with mysql db.
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    networks:
+      - wpsite2
+
+networks:
+  wpsite2:
+
+# Will persists any updates made by wp to database.
+volumes:
+  db_data: {}
